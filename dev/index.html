@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Html-dragsort</title>
+        <link rel="stylesheet" href="inc/style.css" />
+        <style>
+            li {
+                display: block;
+                background-color: #f0f0f0;
+                padding: 0.5rem;
+                border: 1px solid #ccc;
+                user-select: none;
+            }
+            .list > li + li {
+                border-top: 0;
+            }
+            .vlist {
+                display: flex;
+            }
+        </style>
+    </head>
+    <body>
+        <ul class="list">
+            <li class="sy">One</li>
+            <li class="sy">Two</li>
+            <li class="sy">Three</li>
+            <li class="sy">Four</li>
+            <li class="sy">Five</li>
+        </ul>
+
+        <ul class="vlist">
+            <li class="sx">One</li>
+            <li class="sx">Two</li>
+            <li class="sx">Three</li>
+            <li class="sx">Four</li>
+            <li class="sx">Five</li>
+        </ul>
+
+        <ul class="grid">
+            <li class="sc">One</li>
+            <li class="sc">Two</li>
+            <li class="sc">Three</li>
+            <li class="sc">Four</li>
+            <li class="sc">Five</li>
+            <li class="sc">Six</li>
+            <li class="sc">Seven</li>
+            <li class="sc">Eight</li>
+            <li class="sc">Nine</li>
+        </ul>
+        <script src="inc/dragsort.js"></script>
+        <script src="main.js"></script>
+    </body>
+</html>
