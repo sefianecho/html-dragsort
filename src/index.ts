@@ -1,1 +1,1 @@
-export { DragSort } from "./dragsort";
+export { default } from "./dragsort";
