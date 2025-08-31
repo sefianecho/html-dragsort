@@ -1,4 +1,5 @@
 import DragSort from "./dragsort";
+import { EventData } from "./types";
 import { assign, isStringNotEmpty } from "./utils";
 import {
     getElements,
@@ -7,10 +8,18 @@ import {
     translate,
 } from "./utils/dom";
 
-export const sortable = ({ ls, opts: { axis, draggable } }: DragSort) => {
+export const sortable = ({
+    ls,
+    e: { emit },
+    opts: { axis, draggable },
+}: DragSort) => {
     let activeElement: HTMLElement | SVGElement;
     let placeholder: HTMLElement | SVGElement;
     let sortableTarget: Element | null;
+
+    let eventData: EventData;
+
+    let dragStart = false;
 
     let startX: number;
     let startY: number;
@@ -30,6 +39,11 @@ export const sortable = ({ ls, opts: { axis, draggable } }: DragSort) => {
         } = activeElement.getBoundingClientRect();
 
         if (buttons) {
+            if (!dragStart) {
+                emit("dragStart", eventData);
+                dragStart = true;
+            }
+
             if (axis === "x") {
                 y = startY;
             } else if (axis === "y") {
@@ -47,7 +61,7 @@ export const sortable = ({ ls, opts: { axis, draggable } }: DragSort) => {
             translate(activeElement, x - startX, y - startY);
 
             if (sortableTarget && sortableTarget !== placeholder) {
-                let {
+                const {
                     x: targetX,
                     y: targetY,
                     right: targetRight,
@@ -65,6 +79,10 @@ export const sortable = ({ ls, opts: { axis, draggable } }: DragSort) => {
                             y > targetY &&
                             y < targetBottom))
                 ) {
+                    // Event target
+                    eventData[3] = sortableTarget;
+                    eventData[5] = ListElements.indexOf(sortableTarget);
+                    emit("sort", eventData);
                     swapElements(ls, sortableTarget, placeholder);
                 }
             }
@@ -78,6 +96,8 @@ export const sortable = ({ ls, opts: { axis, draggable } }: DragSort) => {
         activeElement.removeEventListener("pointermove", dragMove);
         activeElement.removeEventListener("pointerup", dragEnd);
         placeholder.replaceWith(activeElement);
+        eventData[1] = eventData[3] = null;
+        emit("dragEnd", eventData);
     };
 
     draggableElements.forEach((dragElement, index) =>
@@ -121,6 +141,7 @@ export const sortable = ({ ls, opts: { axis, draggable } }: DragSort) => {
             document.body.append(activeElement);
             activeElement.setPointerCapture(pointerId);
 
+            eventData = [ls, placeholder, activeElement, null, index, -1];
 
             activeElement.addEventListener("pointermove", dragMove);
             activeElement.addEventListener("pointerup", dragEnd);
