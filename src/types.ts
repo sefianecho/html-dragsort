@@ -1,6 +1,8 @@
 export interface DragSortOptions {
     draggable?: string;
+    handle?: string;
     axis?: "x" | "y" | "xy";
+    opacity?: number;
 }
 
 export interface SortEvent {

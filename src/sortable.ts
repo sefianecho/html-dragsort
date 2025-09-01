@@ -14,7 +14,7 @@ import {
 export const sortable = ({
     ls,
     e: { emit },
-    opts: { axis, draggable },
+    opts: { handle, axis, draggable, opacity },
 }: DragSort) => {
     let activeElement: HTMLElement | SVGElement;
     let placeholder: HTMLElement | SVGElement;
@@ -121,7 +121,7 @@ export const sortable = ({
             assign(
                 placeholder.style,
                 {
-                    opacity: 0,
+                    opacity,
                 },
                 box,
             );

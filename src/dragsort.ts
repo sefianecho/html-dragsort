@@ -21,7 +21,7 @@ export default class DragSort {
         // if (list) {
         this.e = eventEmitter();
         this.ls = list;
-        this.opts = { ...{ axis: "y" }, ...options };
+        this.opts = { ...{ axis: "y", opacity: 0 }, ...options };
         sortable(this);
         // }
     }
