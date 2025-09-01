@@ -1,5 +1,5 @@
 import { isString } from ".";
-import { EventBinder, RectArray } from "../types";
+import { DragElement, EventBinder, RectArray } from "../types";
 
 export const getElements = <T extends Element>(ref: string | T): T[] => {
     if (isString(ref)) {
@@ -11,21 +11,21 @@ export const getElements = <T extends Element>(ref: string | T): T[] => {
 export const translate = (el: HTMLElement | SVGElement, x: number, y: number) =>
     (el.style.transform = `translate(${x}px,${y}px)`);
 
-export const getSortableTarget = (
+export const getClosestItem = (
     container: Element,
     element: Element | null,
-): Element | null => {
+): DragElement | null => {
     const parent = element && element.parentElement;
 
     if (parent === container) {
-        return element;
+        return element as DragElement;
     }
 
     if (!parent) {
         return parent;
     }
 
-    return getSortableTarget(container, parent);
+    return getClosestItem(container, parent);
 };
 
 export const swapElements = (parent: Node, nodeA: Node, nodeB: Node) => {

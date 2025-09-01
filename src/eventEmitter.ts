@@ -1,10 +1,4 @@
-import {
-    EventData,
-    EventEmitter,
-    EventHandler,
-    EventListeners,
-    EventType,
-} from "./types";
+import { EventEmitter, EventHandler, EventListeners, EventType } from "./types";
 import { isUndefined } from "./utils";
 
 const initListeners = (): EventListeners => ({

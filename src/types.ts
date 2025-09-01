@@ -1,3 +1,4 @@
+export type DragElement = HTMLElement | SVGElement;
 export interface DragSortOptions {
     draggable?: string;
     handle?: string;

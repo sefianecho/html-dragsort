@@ -1,11 +1,11 @@
-import DragSort from "./dragsort";
-import { EventData } from "./types";
+import HTMLDragSort from "./dragsort";
+import { DragElement, EventData } from "./types";
 import { assign, isStringNotEmpty } from "./utils";
 import {
     addEvent,
     getBoundingRect,
     getElements,
-    getSortableTarget,
+    getClosestItem,
     removeEvent,
     swapElements,
     translate,
@@ -14,36 +14,45 @@ import {
 export const sortable = ({
     ls,
     e: { emit },
-    opts: { handle, axis, draggable, opacity },
-}: DragSort) => {
-    let activeElement: HTMLElement | SVGElement;
-    let placeholder: HTMLElement | SVGElement;
+    unset,
+    opts: { handle, axis, draggable, opacity, disabled },
+}: HTMLDragSort) => {
+    if (unset) {
+        unset();
+    }
+
+    if (disabled) {
+        return;
+    }
+
+    let dragItem: DragElement;
+    let placeholder: DragElement;
     let sortableTarget: Element | null;
 
     let eventData: EventData;
 
-    let dragStart = false;
+    let isDragging = false;
 
     let startX: number;
     let startY: number;
 
-    const ListElements = [...ls.children];
-    const draggableElements = isStringNotEmpty(draggable)
+    const items = [...ls.children];
+    const draggableItems = isStringNotEmpty(draggable)
         ? getElements(":scope > " + draggable)
-        : ListElements;
+        : items;
 
     const dragMove = (e: PointerEvent) => {
         if (e.buttons) {
             let { x, y } = e;
             let [dragCenterX, dragCenterY, dragWidth, dragHeight] =
-                getBoundingRect(activeElement);
+                getBoundingRect(dragItem);
 
             dragCenterX += dragWidth / 2;
             dragCenterY += dragHeight / 2;
 
-            if (!dragStart) {
+            if (!isDragging) {
                 emit("dragStart", eventData);
-                dragStart = true;
+                isDragging = true;
             }
 
             if (axis === "x") {
@@ -52,12 +61,12 @@ export const sortable = ({
                 x = startX;
             }
 
-            sortableTarget = getSortableTarget(
+            sortableTarget = getClosestItem(
                 ls,
                 document.elementFromPoint(dragCenterX, dragCenterY),
             );
 
-            translate(activeElement, x - startX, y - startY);
+            translate(dragItem, x - startX, y - startY);
 
             if (sortableTarget && sortableTarget !== placeholder) {
                 let [targetX, targetY, targetRight, targetBottom] =
@@ -79,7 +88,7 @@ export const sortable = ({
                 ) {
                     // Event target
                     eventData[3] = sortableTarget;
-                    eventData[5] = ListElements.indexOf(sortableTarget);
+                    eventData[5] = items.indexOf(sortableTarget);
                     emit("sort", eventData);
                     swapElements(ls, sortableTarget, placeholder);
                 }
@@ -90,66 +99,74 @@ export const sortable = ({
     };
 
     const dragEnd = () => {
-        activeElement.removeAttribute("style");
-        removeEvent(activeElement, "pointermove", dragMove);
-        removeEvent(activeElement, "pointerup", dragMove);
-        placeholder.replaceWith(activeElement);
+        dragItem.removeAttribute("style");
+        removeEvent(dragItem, "pointermove", dragMove);
+        removeEvent(dragItem, "pointerup", dragMove);
+        placeholder.replaceWith(dragItem);
         eventData[1] = eventData[3] = null;
         emit("dragEnd", eventData);
     };
 
-    draggableElements.forEach((dragElement, index) =>
-        addEvent(dragElement, "pointerdown", ({ pointerId, x, y, target }) => {
-            if (
-                isStringNotEmpty(handle) &&
-                !(target as Element).closest(handle)
-            ) {
-                return;
-            }
+    const dragStart = ({ x, y, pointerId, target }: PointerEvent) => {
+        const el = getClosestItem(ls, target as Element);
+        if (
+            !el ||
+            !draggableItems.includes(el) ||
+            (isStringNotEmpty(handle) && !(target as Element).closest(handle))
+        ) {
+            return;
+        }
 
-            const [left, top, width, height] = getBoundingRect(dragElement);
-            const box = {
-                boxSizing: "border-box",
-                width: width + "px",
-                height: height + "px",
-            };
-            placeholder = dragElement.cloneNode() as HTMLElement | SVGElement;
+        dragItem = el;
+        placeholder = dragItem.cloneNode() as DragElement;
+        const [left, top, width, height] = getBoundingRect(dragItem);
+        const box = {
+            boxSizing: "border-box",
+            width: width + "px",
+            height: height + "px",
+        };
 
-            startX = x;
-            startY = y;
+        startX = x;
+        startY = y;
 
-            assign(
-                placeholder.style,
-                {
-                    opacity,
-                },
-                box,
-            );
+        assign(
+            placeholder.style,
+            {
+                opacity,
+            },
+            box,
+        );
 
-            activeElement = dragElement as HTMLElement | SVGElement;
+        assign(
+            dragItem.style,
+            {
+                position: "fixed",
+                pointerEvents: "none",
+                top: top + "px",
+                left: left + "px",
+                willChange: "transform",
+            },
+            box,
+        );
 
-            assign(
-                activeElement.style,
-                {
-                    position: "fixed",
-                    pointerEvents: "none",
-                    top: top + "px",
-                    left: left + "px",
-                    willChange: "transform",
-                },
-                box,
-            );
+        dragItem.after(placeholder);
+        document.body.append(dragItem);
+        dragItem.setPointerCapture(pointerId);
 
-            activeElement.after(placeholder);
-            document.body.append(activeElement);
-            activeElement.setPointerCapture(pointerId);
+        eventData = [
+            ls,
+            placeholder,
+            dragItem,
+            null,
+            items.indexOf(dragItem),
+            -1,
+        ];
 
-            eventData = [ls, placeholder, activeElement, null, index, -1];
+        addEvent(dragItem, "pointermove", dragMove);
+        addEvent(dragItem, "pointerup", dragEnd);
+    };
 
-            addEvent(activeElement, "pointermove", dragMove);
-            addEvent(activeElement, "pointerup", dragEnd);
-        }),
-    );
+    addEvent(ls, "pointerdown", dragStart);
 
-    return {};
+    return () => removeEvent(ls, "pointerdown", dragStart);
 };

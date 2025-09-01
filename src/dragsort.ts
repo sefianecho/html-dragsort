@@ -8,22 +8,23 @@ import {
 } from "./types";
 import { getElements } from "./utils/dom";
 
-export default class DragSort {
-    opts: DragSortOptions;
-    ls: HTMLElement;
-    e: EventEmitter;
+export default class HTMLDragSort {
+    opts!: DragSortOptions;
+    ls!: HTMLElement;
+    e!: EventEmitter;
+    unset: (() => void) | undefined;
     constructor(
         container: string | HTMLElement,
         options: DragSortOptions = {},
     ) {
         const list = getElements<HTMLElement>(container)[0];
 
-        // if (list) {
-        this.e = eventEmitter();
-        this.ls = list;
-        this.opts = { ...{ axis: "y", opacity: 0 }, ...options };
-        sortable(this);
-        // }
+        if (list) {
+            this.e = eventEmitter();
+            this.ls = list;
+            this.opts = { ...{ axis: "y", opacity: 0 }, ...options };
+            this.unset = sortable(this);
+        }
     }
 
     on(type: EventType, handler: EventHandler) {
