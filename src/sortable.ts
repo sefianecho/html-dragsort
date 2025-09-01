@@ -110,6 +110,7 @@ export const sortable = ({
     const dragStart = ({ x, y, pointerId, target }: PointerEvent) => {
         const el = getClosestItem(ls, target as Element);
         if (
+            disabled ||
             !el ||
             !draggableItems.includes(el) ||
             (isStringNotEmpty(handle) && !(target as Element).closest(handle))

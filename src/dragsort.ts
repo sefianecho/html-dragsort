@@ -6,6 +6,7 @@ import {
     EventHandler,
     EventType,
 } from "./types";
+import { assign } from "./utils";
 import { getElements } from "./utils/dom";
 
 export default class HTMLDragSort {
@@ -25,6 +26,11 @@ export default class HTMLDragSort {
             this.opts = { ...{ axis: "y", opacity: 0 }, ...options };
             this.unset = sortable(this);
         }
+    }
+
+    setOptions(options: DragSortOptions) {
+        assign(this.opts, options || {});
+        this.unset = sortable(this);
     }
 
     on(type: EventType, handler: EventHandler) {

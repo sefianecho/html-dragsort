@@ -4,6 +4,7 @@ export interface DragSortOptions {
     handle?: string;
     axis?: "x" | "y" | "xy";
     opacity?: number;
+    disabled?: boolean;
 }
 
 export interface SortEvent {
