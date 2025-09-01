@@ -31,3 +31,17 @@ export interface EventEmitter {
     add(type: EventType, handler: EventHandler): void;
     rm(type?: EventType, handler?: EventHandler): void;
 }
+
+type EventMap = DocumentEventMap &
+    HTMLElementEventMap &
+    ShadowRootEventMap &
+    WindowEventMap;
+
+export type EventBinder = <T extends EventTarget, U extends keyof EventMap>(
+    target: T,
+    type: U,
+    listener: (e: EventMap[U]) => void,
+    options?: boolean | AddEventListenerOptions,
+) => void;
+
+export type RectArray = [x: number, y: number, width: number, height: number];

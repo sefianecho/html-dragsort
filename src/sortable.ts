@@ -2,8 +2,11 @@ import DragSort from "./dragsort";
 import { EventData } from "./types";
 import { assign, isStringNotEmpty } from "./utils";
 import {
+    addEvent,
+    getBoundingRect,
     getElements,
     getSortableTarget,
+    removeEvent,
     swapElements,
     translate,
 } from "./utils/dom";
@@ -29,16 +32,15 @@ export const sortable = ({
         ? getElements(":scope > " + draggable)
         : ListElements;
 
-    const dragMove = (e: Event) => {
-        let { x, y, buttons } = e as PointerEvent;
-        let {
-            x: dragCenterX,
-            y: dragCenterY,
-            width: dragW,
-            height: dragH,
-        } = activeElement.getBoundingClientRect();
+    const dragMove = (e: PointerEvent) => {
+        if (e.buttons) {
+            let { x, y } = e;
+            let [dragCenterX, dragCenterY, dragWidth, dragHeight] =
+                getBoundingRect(activeElement);
 
-        if (buttons) {
+            dragCenterX += dragWidth / 2;
+            dragCenterY += dragHeight / 2;
+
             if (!dragStart) {
                 emit("dragStart", eventData);
                 dragStart = true;
@@ -50,9 +52,6 @@ export const sortable = ({
                 x = startX;
             }
 
-            dragCenterX += dragW / 2;
-            dragCenterY += dragH / 2;
-
             sortableTarget = getSortableTarget(
                 ls,
                 document.elementFromPoint(dragCenterX, dragCenterY),
@@ -61,12 +60,11 @@ export const sortable = ({
             translate(activeElement, x - startX, y - startY);
 
             if (sortableTarget && sortableTarget !== placeholder) {
-                const {
-                    x: targetX,
-                    y: targetY,
-                    right: targetRight,
-                    bottom: targetBottom,
-                } = sortableTarget.getBoundingClientRect();
+                let [targetX, targetY, targetRight, targetBottom] =
+                    getBoundingRect(sortableTarget);
+
+                targetRight += targetX;
+                targetBottom += targetY;
 
                 if (
                     dragCenterX > targetX &&
@@ -93,19 +91,24 @@ export const sortable = ({
 
     const dragEnd = () => {
         activeElement.removeAttribute("style");
-        activeElement.removeEventListener("pointermove", dragMove);
-        activeElement.removeEventListener("pointerup", dragEnd);
+        removeEvent(activeElement, "pointermove", dragMove);
+        removeEvent(activeElement, "pointerup", dragMove);
         placeholder.replaceWith(activeElement);
         eventData[1] = eventData[3] = null;
         emit("dragEnd", eventData);
     };
 
     draggableElements.forEach((dragElement, index) =>
-        dragElement.addEventListener("pointerdown", (e: Event) => {
-            const { pointerId, x, y } = e as PointerEvent;
-            const { top, left, width, height } =
-                dragElement.getBoundingClientRect();
-            const dim = {
+        addEvent(dragElement, "pointerdown", ({ pointerId, x, y, target }) => {
+            if (
+                isStringNotEmpty(handle) &&
+                !(target as Element).closest(handle)
+            ) {
+                return;
+            }
+
+            const [left, top, width, height] = getBoundingRect(dragElement);
+            const box = {
                 boxSizing: "border-box",
                 width: width + "px",
                 height: height + "px",
@@ -120,7 +123,7 @@ export const sortable = ({
                 {
                     opacity: 0,
                 },
-                dim,
+                box,
             );
 
             activeElement = dragElement as HTMLElement | SVGElement;
@@ -134,7 +137,7 @@ export const sortable = ({
                     left: left + "px",
                     willChange: "transform",
                 },
-                dim,
+                box,
             );
 
             activeElement.after(placeholder);
@@ -143,8 +146,8 @@ export const sortable = ({
 
             eventData = [ls, placeholder, activeElement, null, index, -1];
 
-            activeElement.addEventListener("pointermove", dragMove);
-            activeElement.addEventListener("pointerup", dragEnd);
+            addEvent(activeElement, "pointermove", dragMove);
+            addEvent(activeElement, "pointerup", dragEnd);
         }),
     );
 

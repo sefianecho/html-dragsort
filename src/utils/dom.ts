@@ -1,4 +1,5 @@
 import { isString } from ".";
+import { EventBinder, RectArray } from "../types";
 
 export const getElements = <T extends Element>(ref: string | T): T[] => {
     if (isString(ref)) {
@@ -39,4 +40,15 @@ export const swapElements = (parent: Node, nodeA: Node, nodeB: Node) => {
         parent.insertBefore(nodeA, nextB);
         parent.insertBefore(nodeB, nextA);
     }
+};
+
+export const addEvent: EventBinder = (target, type, listener, options) =>
+    target.addEventListener(type, listener as EventListener, options);
+
+export const removeEvent: EventBinder = (target, type, listener) =>
+    target.removeEventListener(type, listener as EventListener);
+
+export const getBoundingRect = (el: Element): RectArray => {
+    const { x, y, width, height } = el.getBoundingClientRect();
+    return [x, y, width, height];
 };
