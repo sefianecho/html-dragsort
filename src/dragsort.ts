@@ -6,7 +6,7 @@ import {
     EventHandler,
     EventType,
 } from "./types";
-import { assign } from "./utils";
+import { assign, keys, setPrototypeOf } from "./utils";
 import { getElements } from "./utils/dom";
 
 export default class HTMLDragSort {
@@ -39,5 +39,16 @@ export default class HTMLDragSort {
 
     off(type?: EventType, handler?: EventHandler) {
         this.e.rm(type, handler);
+    }
+
+    destroy() {
+        if (this.unset) {
+            this.unset();
+        }
+        keys(this).forEach((key) => {
+            const prop = key as keyof HTMLDragSort;
+            (this[prop] as unknown) = null;
+        });
+        setPrototypeOf(this, null);
     }
 }

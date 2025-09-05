@@ -1,4 +1,4 @@
-export const { assign } = Object;
+export const { assign, keys, setPrototypeOf } = Object;
 
 export const isString = (value: unknown): value is string =>
     typeof value === "string";
