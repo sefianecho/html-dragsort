@@ -1,111 +1,83 @@
-# Tartib
+# HTML DragSort
 
-Reorder a list of DOM elements, by dragging an element within the list to occupy another position, other elements will shift to create a slot for the dragged element.
+html-dragsort is a lightweight, zero-dependency library for reordering HTML elements using Pointer Events. It supports vertical, horizontal, and grid layouts, with options for drag handles and lifecycle events (`dragStart`, `sort`, `dragEnd`).
 
-## Features
-- No dependencies.
-- Lightweight.
-- Mobile friendly.
-- Sort list with items aligned horizontally, vertically or in a grid.
+## Getting Started
 
-## Demo
-[Click here](https://sofianchouaib.github.io/tartib/)
-## Getting started
 Install using package manager:
-```bash
-npm install tartib
+```sh
+npm install html-dragsort
 ```
 or
-
-```bash
-yarn add tartib
+```sh
+yard add html-dragsort
 ```
-and import files:
+### CDN
 
-```javascript
-// Import javascript.
-import tartib from 'tartib';
-
-// Import css.
-import 'tartib/dist/css/tartib.min.css';
-```
-
-## CDN
-Add a direct link to your page.
-
-- Jsdelivr CDN
+- UMD
 ```html
-<!-- Style -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tartib/dist/css/tartib.min.css">
-
-<!-- Script -->
-<script src="https://cdn.jsdelivr.net/npm/tartib/dist/js/tartib.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html-dragsort@1/dist/html-dragsort.umd.min.js"></script>
 ```
-
-- Unpkg CDN
+- IIFE
 ```html
-<!-- Style -->
-<link rel="stylesheet" href="https://unpkg.com/tartib/dist/css/tartib.min.css">
-
-<!-- Script -->
-<script src="https://unpkg.com/tartib/dist/js/tartib.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html-dragsort@1/dist/html-dragsort.iife.min.js"></script>
 ```
-
+- ES Module
+```html
+<script type="module">
+    import HTMLDragSort from "https://cdn.jsdelivr.net/npm/html-dragsort@1/dist/html-dragsort.esm.min.js";
+</script>
+```
 ## Usage
-```html
-<ul id="my-list" class="tartib">
-  <li class="tartib__item">One</li>
-  <li class="tartib__item">Two</li>
-  <li class="tartib__item">Three</li>
-  <li class="tartib__item">Four</li>
-</ul>
-```
-```javascript
-// The second argument (options) is optional.
-const tartib = new Tartib('#my-list', {
-  // Options...
-});
-```
 
+html-dragsort makes any container sortable by dragging its children. Just pass a parent element (or a selector) to the constructor. By default, all direct children become draggable, but you can customize which ones are draggable using options like `handle` or a `draggable` class filter.
+
+```javascript
+const sorter = new HTMLDragSort('#container', { /* ...options */ });
+```
 ## Options
-| **Option** | **Type** | **Default** | **Description** |
-|------------| ---------| ------------ | ---------------- |
-| dragFrom   | `Object` |  `{}`        | Object with x, y properties, drag items from the same position, x and y represent the coordinates relative to the dragged item's top left corner, x and y can be numbers or percentages, e.g. `{ x: '50%' }` to center it horizontally. |
-| cursor | `String` | `''` | Set the cursor while dragging an item (CSS cursor property). |
-| elevation | `Boolean` | `true` | Adds a box shadow to the dragged item. |
-| active | `String` | `''` | Add classes (space separated) to the dragged item, those classes will be removed when the item is dropped |
-| placeholder | `String` | `''` | Add classes to the placeholder (The empty slot). |
-| dragHandle | `String\|Element` | `''` | A selector or an Element, use it as a drag area within the item. |
-| axis | `String` | `''` | Lock movement to only one axis `'x'` or `'y'` |
-| disabled | `Boolean` | `false` | Disable/Enable sorting |
-| opacity | `Number` | `1` | Apply opacity to the dragged item (during dragging), value must be between 0 and 1 exclusive |
-| autoScroll | `Boolean` | `true` | Auto scroll while dragging an item, to show out of viewport items. |
-| rtl | `Boolean` | `false` | Right to Left direction |
+
+| Option      | Type             | Default | Description                                                                                                                             |
+|-------------|------------------|---------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| `draggable` | `string`         | `""`    | A CSS selector that defines which children of the container can be dragged.                                                             |
+| `handle`    | `string`         | `""`    | A CSS selector for a "drag handle" inside each draggable item.                                                                          |
+| `axis`      | `"x"\|"y"\|"xy"` | `"y"`   | Restricts the drag movement to a specific axis, for `xy` items can be dragged freely in both directions.                                |
+| `opacity`   | `number`         | `0`     | Sets the CSS opacity of the placeholder element while dragging. The value should be between 0 (fully transparent) and 1 (fully opaque). |
+| `disabled`  | `boolean`        | `false` | Disables drag-and-sort behavior when set to `true`.                                                                                     |
 
 ## Events
 
-| **Event**  | **Argument** | **Description**               |
-|------- | --------------- | ------------------------------ |
-| `start` | `event` | is fired when the item starts to move. |
-| `move` | `event` | is fired when the item is moving |
-| `sort` | `event` | is fired when the item changes its position. |
-| `change` | `event` | is fired when the list items order changes. |
-| `end` | `event` | is fired when the item is dropped. |
+html-dragsort dispatches events during the drag-and-sort lifecycle. You can listen for them using `.on(event, callback)`
+Each event handler receives a `SortEvent` object with details like the item being dragged, placeholder, from/to indexes, and the container list.
 
-### Event Handler parameter
-- x: `number` — Item x coordinate.
-- y: `number` — Item y coordinate.
-- target: `Element` — The Dragged Item.
-- relatedTarget: `Element` — When hover over or touch other list item while dragging an item.
-- placeholder: `Element` — Item slot.
-- items: `Array` — List items.
-- getData(attribute : `String`) : `Array` — Array of each item attribute value.
+```javascript
+sorter.on("sort", (evt) => {
+  // Event type
+  evt.type
+  // Temporary element that occupies the position of the dragged item while sorting.
+  evt.placeholder
+  // Dragged element
+  evt.dragged
+  // The target is the sortable element that the dragged item is currently hovering over during a drag operation.
+  evt.target
+  // The original index of the dragged item before sorting began.
+  evt.from
+  // The new index of the dragged item after it has been reordered. (-1 if no reordering happened yet).
+  evt.to
+  // The sortable container element passed to HTMLDragSort.
+  evt.list
+});
+```
+
+| Event       | Argument    | Description                                                           |
+|-------------|-------------|-----------------------------------------------------------------------|
+| `dragStart` | `SortEvent` | Triggered as soon as the user starts dragging an item.                |
+| `sort`      | `SortEvent` | Fires whenever the dragged item is reordered within the container.    |
+| `dragEnd`   | `SortEvent` | Fires when the dragged item is dropped (the drag operation finishes). |
 
 ## Methods
-- **setOptions**(options: `Object`) — Sets one or more options.
-- **on**(type: `String`, handler: `callback`) — Adds an event listener.
-- **off**(type`?`: `String`, handler`?`: `callback`) — Removes an event handler, if the handler argument is omitted then all handlers attach to this event will be removed, calling this method without arguments will remove all handlers of all events.
-- **getData**(attribute: `String`) : `Array` — Array of each item attribute value.
-- **disable**() — Disables sorting.
-- **enable**() — Enables sorting.
-- **destroy**() — Removes this instance functionality (free up memory).
+
+- setOptions(options: `DragSortOptions`) — Updates the configuration of the existing HTMLDragSort instance.
+- on(type: `EventType`, handler: `EventHandler`) — Attaches an event handler.
+- off(type?: `EventType`, handler?: `EventHandler`) — Detaches event handlers; omit `handler` to remove all handlers for an event, omit event `type` to remove all handlers entirely.
+- destroy() — Removes event listeners attached to the container and cleans up the `HTMLDragSort` instance.
