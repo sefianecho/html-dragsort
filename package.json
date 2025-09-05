@@ -1,9 +1,24 @@
 {
     "name": "html-dragsort",
-    "version": "1.0.2",
-    "description": "Reorder a list of DOM elements, by dragging an element within the list to occupy another position, other elements will shift to create a slot for the dragged element.",
+    "version": "1.0.0",
+    "description": "Lightweight drag-and-drop sorting for HTML elements",
     "type": "module",
-    "main": "dist/js/tartib.min.js",
+    "main": "dist/html-dragsort.umd.min.js",
+    "module": "dist/html-dragsort.esm.min.js",
+    "browser": "dist/html-dragsort.iife.min.js",
+    "files": [
+        "dist"
+    ],
+    "keywords": [
+        "drag",
+        "dragsort",
+        "drag-and-drop",
+        "sortable",
+        "sort",
+        "list",
+        "html",
+        "reorder"
+    ],
     "scripts": {
         "dev": "rollup -c rollup.serve.js -w",
         "build": "rollup -c",
